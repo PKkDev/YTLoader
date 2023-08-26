@@ -8,6 +8,11 @@ try
         YouTubeClient youTubeClient = new();
         var youTubeVideo = await youTubeClient.GetVideo("https://www.youtube.com/watch?v=LZvTEecjxos");
 
+        youTubeClient.ProgressChanged += (long? totalFileSize, long totalBytesDownloaded, double? progressPercentage) =>
+        {
+            Console.WriteLine($"{progressPercentage}% ({totalBytesDownloaded}/{totalFileSize})");
+        };
+
         var videos = youTubeVideo.FormatsInfo
             .Where(x => x.InfoFromResponse.AdaptiveKind == AdaptiveKind.Video && x.InfoFromResponse.Format == VideoFormat.Mp4)
             .OrderByDescending(x => x.InfoFromResponse.Resolution)
@@ -18,6 +23,8 @@ try
 
         File.WriteAllBytes(@"D:\Projects\YTLoader\" + youTubeVideo.VideoName + first.FileExtension, b);
 
+        youTubeClient.Dispose();
+
     });
     task.Wait();
 }
@@ -25,3 +32,4 @@ catch (Exception e)
 {
     Console.WriteLine(e);
 }
+

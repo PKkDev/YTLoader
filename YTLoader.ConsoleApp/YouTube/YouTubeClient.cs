@@ -5,8 +5,12 @@ using YTLoader.ConsoleApp.YouTube.Types;
 
 namespace YTLoader.ConsoleApp.YouTube
 {
-    public class YouTubeClient
+    public class YouTubeClient : IDisposable
     {
+        public delegate void ProgressChangedHandler(long? totalFileSize, long totalBytesDownloaded, double? progressPercentage);
+
+        public event ProgressChangedHandler ProgressChanged;
+
         private HttpClient _client { get; set; }
 
         public YouTubeClient()
@@ -16,6 +20,8 @@ namespace YTLoader.ConsoleApp.YouTube
 
         public async Task<VideoInfo> GetVideo(string url)
         {
+            _client.Timeout = TimeSpan.FromMinutes(2);
+
             var pageContent = await _client.GetStringAsync(url);
             File.WriteAllText("D:/Projects/YTLoader/YTLoader.ConsoleApp/response.html", pageContent);
 
@@ -112,12 +118,60 @@ namespace YTLoader.ConsoleApp.YouTube
 
         public async Task<byte[]> GetBytes(FormatInfo video)
         {
-            var b = await _client.GetByteArrayAsync(video.VideoUrl);
-            return b;
+            _client.Timeout = TimeSpan.FromMinutes(30);
+            MemoryStream stream = new();
+
+            using (var response = await _client.GetAsync(video.VideoUrl, HttpCompletionOption.ResponseHeadersRead))
+            {
+                response.EnsureSuccessStatusCode();
+
+                var totalBytes = response.Content.Headers.ContentLength;
+
+                using (var contentStream = await response.Content.ReadAsStreamAsync())
+                {
+                    var totalBytesRead = 0L;
+                    var buffer = new byte[81920];
+                    var isMoreToRead = true;
+
+                    do
+                    {
+                        var bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length);
+                        if (bytesRead == 0)
+                        {
+                            isMoreToRead = false;
+                            TriggerProgressChanged(totalBytes, totalBytesRead);
+                            continue;
+                        }
+                        await stream.WriteAsync(buffer, 0, bytesRead);
+
+                        totalBytesRead += bytesRead;
+
+                        TriggerProgressChanged(totalBytes, totalBytesRead);
+                    }
+                    while (isMoreToRead);
+                }
+            }
+
+            return stream.ToArray();
+        }
+
+        private void TriggerProgressChanged(long? totalDownloadSize, long totalBytesRead)
+        {
+            if (ProgressChanged == null)
+                return;
+
+            double? progressPercentage = null;
+            if (totalDownloadSize.HasValue)
+                progressPercentage = Math.Round((double)totalBytesRead / totalDownloadSize.Value * 100, 2);
+
+
+            Console.WriteLine($"{progressPercentage}% ({totalBytesRead}/{totalDownloadSize})");
+
+            ProgressChanged(totalDownloadSize, totalBytesRead, progressPercentage);
         }
 
         private HttpClient CreateClient()
-        { 
+        {
             // Cookie
             var cookieContainer = new CookieContainer();
             cookieContainer.Add(new Uri("https://youtube.com/"), new Cookie("CONSENT", "YES+cb", "/", ".youtube.com"));
@@ -126,7 +180,7 @@ namespace YTLoader.ConsoleApp.YouTube
             {
                 UseCookies = true,
                 CookieContainer = cookieContainer,
-                
+
             };
             if (handler.SupportsAutomaticDecompression)
                 handler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
@@ -169,6 +223,11 @@ namespace YTLoader.ConsoleApp.YouTube
             }
 
             return playerResponseMap.Replace(@"\u0026", "&").Replace("\r\n", string.Empty).Replace("\n", string.Empty).Replace("\r", string.Empty).Replace("\\&", "\\\\&");
+        }
+
+        public void Dispose()
+        {
+            _client?.Dispose();
         }
     }
 }

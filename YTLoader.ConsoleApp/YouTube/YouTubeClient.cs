@@ -117,7 +117,7 @@ namespace YTLoader.ConsoleApp.YouTube
         }
 
         private HttpClient CreateClient()
-        {
+        { 
             // Cookie
             var cookieContainer = new CookieContainer();
             cookieContainer.Add(new Uri("https://youtube.com/"), new Cookie("CONSENT", "YES+cb", "/", ".youtube.com"));
@@ -125,7 +125,8 @@ namespace YTLoader.ConsoleApp.YouTube
             var handler = new HttpClientHandler
             {
                 UseCookies = true,
-                CookieContainer = cookieContainer
+                CookieContainer = cookieContainer,
+                
             };
             if (handler.SupportsAutomaticDecompression)
                 handler.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;

@@ -1,5 +1,5 @@
-﻿using YTLoader.ConsoleApp.YouTube;
-using YTLoader.ConsoleApp.YouTube.Enums;
+﻿using YTLoader.Core;
+using YTLoader.Core.Enums;
 
 try
 {
@@ -13,12 +13,25 @@ try
             Console.WriteLine($"{progressPercentage}% ({totalBytesDownloaded}/{totalFileSize})");
         };
 
-        var videos = youTubeVideo.FormatsInfo
-            .Where(x => x.InfoFromResponse.AdaptiveKind == AdaptiveKind.Video && x.InfoFromResponse.Format == VideoFormat.Mp4)
-            .OrderByDescending(x => x.InfoFromResponse.Resolution)
+        var a1 = youTubeVideo.FormatsInfo.Where(x => x.InfoFromUrl.AudioFormat != AudioFormat.Unknown).ToList();
+        var a2 = youTubeVideo.FormatsInfo.Where(x => x.InfoFromResponse.AudioQuality != null).ToList();
+
+        var forDownloads = youTubeVideo.FormatsInfo
+            .Where(x
+                => x.InfoFromResponse.AdaptiveKind == AdaptiveKind.Video
+                && x.InfoFromResponse.Format == VideoFormat.Mp4
+                && x.InfoFromResponse.Codecs.Count > 1)
             .ToList();
 
-        var first = youTubeVideo.FormatsInfo.FirstOrDefault(x => x.InfoFromUrl.Resolution == 720);
+        var videos = youTubeVideo.FormatsInfo
+            .Where(x
+                => x.InfoFromResponse.AdaptiveKind == AdaptiveKind.Video
+                && x.InfoFromResponse.Format == VideoFormat.Mp4
+                && x.InfoFromResponse.Resolution == 720)
+            .OrderBy(x => x.InfoFromResponse.Codecs.Count)
+            .ToList();
+
+        var first = videos.First();
         var b = await youTubeClient.GetBytes(first);
 
         File.WriteAllBytes(@"D:\Projects\YTLoader\" + youTubeVideo.VideoName + first.FileExtension, b);

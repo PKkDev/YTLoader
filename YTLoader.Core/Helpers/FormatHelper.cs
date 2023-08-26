@@ -1,6 +1,6 @@
-﻿using YTLoader.ConsoleApp.YouTube.Enums;
+﻿using YTLoader.Core.Enums;
 
-namespace YTLoader.ConsoleApp.YouTube.Helpers;
+namespace YTLoader.Core.Helpers;
 
 public static class FormatHelper
 {

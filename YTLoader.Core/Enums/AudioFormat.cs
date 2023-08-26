@@ -1,4 +1,4 @@
-﻿namespace YTLoader.ConsoleApp.YouTube.Enums;
+﻿namespace YTLoader.Core.Enums;
 
 public enum AudioFormat
 {

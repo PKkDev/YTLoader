@@ -1,9 +1,9 @@
 ﻿using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
-using YTLoader.ConsoleApp.YouTube.Enums;
-using YTLoader.ConsoleApp.YouTube.Helpers;
+using YTLoader.Core.Enums;
+using YTLoader.Core.Helpers;
 
-namespace YTLoader.ConsoleApp.YouTube.Types;
+namespace YTLoader.Core.Types;
 
 public class YouTubeVideoFormat
 {
@@ -24,6 +24,8 @@ public class YouTubeVideoFormat
     public AudioFormat AudioFormat { get; set; }
 
     public AdaptiveKind AdaptiveKind { get; set; }
+
+    public string? AudioQuality { get; set; }
 
     public YouTubeVideoFormat()
     {
@@ -115,6 +117,9 @@ public class YouTubeVideoFormat
 
         var qualityLabel = formatNode["qualityLabel"]?.GetValue<string>();
         QualityLabel = qualityLabel ?? "none";
+
+        var audioQuality = formatNode["audioQuality"]?.GetValue<string>();
+        AudioQuality = audioQuality;
     }
 }
 

@@ -1,4 +1,4 @@
-﻿namespace YTLoader.ConsoleApp.YouTube.Types;
+﻿namespace YTLoader.Core.Types;
 
 public class FormatInfoQuery
 {

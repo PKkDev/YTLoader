@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "YTLoader.WinApp (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "YTLoader.WinApp (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

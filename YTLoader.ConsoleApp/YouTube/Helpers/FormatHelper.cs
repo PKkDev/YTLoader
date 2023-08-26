@@ -1,6 +1,8 @@
-﻿namespace YTLoader.ConsoleApp.YouTube;
+﻿using YTLoader.ConsoleApp.YouTube.Enums;
 
-public static class YouTubeVideoFormats
+namespace YTLoader.ConsoleApp.YouTube.Helpers;
+
+public static class FormatHelper
 {
     public static int GetFps(int formatCode)
     {
@@ -111,26 +113,4 @@ public static class YouTubeVideoFormats
                 => AdaptiveKind.None
         };
     }
-}
-
-public enum VideoFormat
-{
-    Mp4,
-    WebM,
-    Unknown
-}
-
-public enum AudioFormat
-{
-    Aac = 0,
-    Vorbis = 1,
-    Opus = 2,
-    Unknown = 3
-}
-
-public enum AdaptiveKind
-{
-    None,
-    Audio,
-    Video
 }

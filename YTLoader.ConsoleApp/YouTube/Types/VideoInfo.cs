@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace YTLoader.ConsoleApp.YouTube
+namespace YTLoader.ConsoleApp.YouTube.Types
 {
     public class VideoInfo
     {
@@ -14,20 +14,24 @@ namespace YTLoader.ConsoleApp.YouTube
 
         public List<string> Keywords { get; init; }
 
-        public List<YouTubeVideo> YouTubeVideos { get; init; }
+        public List<FormatInfo> FormatsInfo { get; init; }
 
-        public VideoInfo(string? title, int? second, string? author, string? videoId, List<string> keywords)
+        public string PlayerData { get; init; }
+
+        public VideoInfo(
+            string? title, int? second, string? author, string? videoId, List<string> keywords, string playerData)
         {
             Title = title ?? "no information";
             LengthSeconds = second;
             Author = author ?? "no information";
             VideoId = videoId ?? "no information";
             Keywords = keywords;
+            PlayerData = playerData;
 
-            YouTubeVideos = new();
+            FormatsInfo = new();
         }
 
-        public string FullName
+        public string VideoName
         {
             get
             {

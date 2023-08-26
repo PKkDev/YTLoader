@@ -1,4 +1,4 @@
-﻿namespace YTLoader.ConsoleApp.YouTube
+﻿namespace YTLoader.ConsoleApp.YouTube.Types
 {
     public readonly struct UnscrambledQuery
     {
@@ -8,8 +8,8 @@
 
         public UnscrambledQuery(string uri, bool encrypted)
         {
-            this.Uri = uri;
-            this.IsEncrypted = encrypted;
+            Uri = uri;
+            IsEncrypted = encrypted;
         }
     }
 }

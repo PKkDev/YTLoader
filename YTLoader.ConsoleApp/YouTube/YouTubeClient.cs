@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text.RegularExpressions;
 using System.Text.Json.Nodes;
+using YTLoader.ConsoleApp.YouTube.Types;
 
 namespace YTLoader.ConsoleApp.YouTube
 {
@@ -69,7 +70,7 @@ namespace YTLoader.ConsoleApp.YouTube
                     keywords.Add(keywordNode.GetValue<string>());
             }
 
-            var videoInfo = new VideoInfo(title, lengthSeconds, author, videoId, keywords);
+            var videoInfo = new VideoInfo(title, lengthSeconds, author, videoId, keywords, playerData);
 
             #endregion video details
 
@@ -93,7 +94,7 @@ namespace YTLoader.ConsoleApp.YouTube
                 if (!string.IsNullOrEmpty(urlValue))
                 {
                     var query = new UnscrambledQuery(urlValue, false);
-                    videoInfo.YouTubeVideos.Add(new YouTubeVideo(query, playerData, item));
+                    videoInfo.FormatsInfo.Add(new FormatInfo(query, item));
                     continue;
                 }
 
@@ -102,14 +103,14 @@ namespace YTLoader.ConsoleApp.YouTube
                 {
                     //yield return new YouTubeVideo(videoInfo, Unscramble(cipherValue), playerData);
                     var query = new UnscrambledQuery(cipherValue, false);
-                    videoInfo.YouTubeVideos.Add(new YouTubeVideo(query, playerData, item));
+                    videoInfo.FormatsInfo.Add(new FormatInfo(query, item));
                 }
             }
 
             return videoInfo;
         }
 
-        public async Task<byte[]> GetBytes(YouTubeVideo video)
+        public async Task<byte[]> GetBytes(FormatInfo video)
         {
             var b = await _client.GetByteArrayAsync(video.VideoUrl);
             return b;

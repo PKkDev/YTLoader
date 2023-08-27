@@ -8,7 +8,45 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-        <Button x:Name="myButton" Click="myButton_Click">Click Me</Button>
+    <StackPanel Orientation="Vertical">
+
+        <StackPanel Orientation="Horizontal">
+
+            <TextBox Text="{x:Bind ViewModel.InputVideoUrl, Mode=TwoWay}"/>
+
+            <Button Command="{x:Bind ViewModel.OnAnalyzVideo}">Start</Button>
+
+        </StackPanel>
+
+        <StackPanel Orientation="Vertical">
+
+            <TextBlock Text="{x:Bind ViewModel.Title, Mode=OneWay}"></TextBlock>
+
+            <TextBlock Text="{x:Bind ViewModel.LengthSeconds, Mode=OneWay}"></TextBlock>
+
+            <TextBlock Text="{x:Bind ViewModel.Author, Mode=OneWay}"></TextBlock>
+
+            <TextBlock Text="{x:Bind ViewModel.VideoId, Mode=OneWay}"></TextBlock>
+
+            <TextBlock Text="{x:Bind ViewModel.Keywords, Mode=OneWay}"></TextBlock>
+
+        </StackPanel>
+
+        <StackPanel Orientation="Vertical">
+
+            <ComboBox x:Name="Formats" Header="Format" PlaceholderText="Pick a Format" ItemsSource="{x:Bind ViewModel.AllFormats}"  SelectedItem="{x:Bind ViewModel.SelectedFormat, Mode=TwoWay}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding InfoFromResponse.QualityLabel}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+        </StackPanel>
+
+
     </StackPanel>
+
 </Window>

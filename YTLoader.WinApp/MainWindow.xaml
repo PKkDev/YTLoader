@@ -48,7 +48,7 @@
 
         </StackPanel>
 
-        <Button Command="{x:Bind ViewModel.OnAnalyzVideo}">Start</Button>
+        
 
         <StackPanel Orientation="Vertical">
 

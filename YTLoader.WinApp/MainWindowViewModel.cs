@@ -55,6 +55,7 @@ namespace YTLoader.WinApp
             get { return _selectedFormat; }
             set
             {
+                this.OnViewDetailForFormat(value);
                 SetProperty(ref _selectedFormat, value);
             }
         }
@@ -66,6 +67,13 @@ namespace YTLoader.WinApp
             InputVideoUrl = "https://www.youtube.com/watch?v=LZvTEecjxos";
 
             OnAnalyzVideo = new RelayCommand(async () => await AnalyzVideo());
+        }
+
+        private void OnViewDetailForFormat(FormatInfo format)
+        {
+            if (SelectedFormat != null && SelectedFormat.FormatCode != format.FormatCode)
+            {
+            }
         }
 
         private async Task AnalyzVideo()

@@ -13,22 +13,22 @@ try
             Console.WriteLine($"{progressPercentage}% ({totalBytesDownloaded}/{totalFileSize})");
         };
 
-        var a1 = youTubeVideo.FormatsInfo.Where(x => x.InfoFromUrl.AudioFormat != AudioFormat.Unknown).ToList();
-        var a2 = youTubeVideo.FormatsInfo.Where(x => x.InfoFromResponse.AudioQuality != null).ToList();
+        var a1 = youTubeVideo.FormatsInfo.Where(x => x.AudioFormat != AudioFormat.Unknown).ToList();
+        var a2 = youTubeVideo.FormatsInfo.Where(x => x.AudioQuality != null).ToList();
 
         var forDownloads = youTubeVideo.FormatsInfo
             .Where(x
-                => x.InfoFromResponse.AdaptiveKind == AdaptiveKind.Video
-                && x.InfoFromResponse.Format == VideoFormat.Mp4
-                && x.InfoFromResponse.Codecs.Count > 1)
+                => x.AdaptiveKind == AdaptiveKind.Video
+                && x.Format == VideoFormat.Mp4
+                && x.Codecs.Count > 1)
             .ToList();
 
         var videos = youTubeVideo.FormatsInfo
             .Where(x
-                => x.InfoFromResponse.AdaptiveKind == AdaptiveKind.Video
-                && x.InfoFromResponse.Format == VideoFormat.Mp4
-                && x.InfoFromResponse.Resolution == 720)
-            .OrderBy(x => x.InfoFromResponse.Codecs.Count)
+                => x.AdaptiveKind == AdaptiveKind.Video
+                && x.Format == VideoFormat.Mp4
+                && x.Resolution == 720)
+            .OrderBy(x => x.Codecs.Count)
             .ToList();
 
         var first = videos.First();

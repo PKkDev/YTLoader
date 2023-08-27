@@ -21,10 +21,10 @@ public class VideoInfo
     public VideoInfo(
         string? title, int? second, string? author, string? videoId, List<string> keywords, string playerData)
     {
-        Title = title ?? "no information";
+        Title = title ?? "none";
         LengthSeconds = second;
-        Author = author ?? "no information";
-        VideoId = videoId ?? "no information";
+        Author = author ?? "none";
+        VideoId = videoId ?? "none";
         Keywords = keywords;
         PlayerData = playerData;
 

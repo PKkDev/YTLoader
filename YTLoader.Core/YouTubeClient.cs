@@ -2,6 +2,7 @@
 using System.Text.RegularExpressions;
 using System.Text.Json.Nodes;
 using YTLoader.Core.Types;
+using System;
 
 namespace YTLoader.Core;
 
@@ -13,6 +14,8 @@ public class YouTubeClient : IDisposable
 
     private HttpClient _client { get; set; }
 
+    private string _signatureKey { get; set; }
+
     public YouTubeClient()
     {
         _client = CreateClient();
@@ -21,10 +24,32 @@ public class YouTubeClient : IDisposable
     public async Task<VideoInfo> GetVideo(string url)
     {
         var pageContent = await _client.GetStringAsync(url);
-        //File.WriteAllText("D:/Projects/YTLoader/YTLoader.ConsoleApp/response.html", pageContent);
+        File.WriteAllText("D:/Projects/YTLoader/YTLoader.ConsoleApp/response.html", pageContent);
 
         var playerData = ParsePlayerJson(pageContent);
-        //File.WriteAllText("D:/Projects/YTLoader/YTLoader.ConsoleApp/InitialPlayerResponse.json", playerData);
+        File.WriteAllText("D:/Projects/YTLoader/YTLoader.ConsoleApp/InitialPlayerResponse.json", playerData);
+
+        string? jsPlayer = null;
+
+        var jsUrlPlayer1 = Regex.Match(pageContent, @"""jsUrl"":\s*""(\S*\.js)"",");
+        if (jsUrlPlayer1.Groups.Count > 1)
+            jsPlayer = jsUrlPlayer1.Groups[1].Value;
+
+        if (jsPlayer == null)
+        {
+            var jsUrlPlayer2 = Regex.Match(pageContent, @"""PLAYER_JS_URL"":\s*""(\S*\.js)"",");
+            if (jsUrlPlayer2.Groups.Count > 1)
+                jsPlayer = jsUrlPlayer2.Groups[1].Value;
+        }
+
+        if (jsPlayer == null)
+            throw new Exception("JsPlayer not found");
+
+        if (jsPlayer.StartsWith("/yts") || jsPlayer.StartsWith("/s"))
+            jsPlayer = $"https://www.youtube.com{jsPlayer}";
+
+        if (!jsPlayer.StartsWith("http"))
+            jsPlayer = $"https:{jsPlayer}";
 
         JsonNode? playerDataJson = JsonNode
             .Parse(playerData)
@@ -74,7 +99,7 @@ public class YouTubeClient : IDisposable
                 keywords.Add(keywordNode.GetValue<string>());
         }
 
-        var videoInfo = new VideoInfo(title, lengthSeconds, author, videoId, keywords, playerData);
+        var videoInfo = new VideoInfo(title, lengthSeconds, author, videoId, keywords, playerData, jsPlayer);
 
         #endregion video details
 
@@ -105,13 +130,64 @@ public class YouTubeClient : IDisposable
             var cipherValue = ((item["cipher"] ?? item["signatureCipher"]) ?? string.Empty).GetValue<string>();
             if (!string.IsNullOrEmpty(cipherValue))
             {
-                //yield return new YouTubeVideo(videoInfo, Unscramble(cipherValue), playerData);
-                var query = new UnscrambledQuery(cipherValue, false);
+                var query = Unscramble(cipherValue);
+                if (query.IsEncrypted)
+                {
+                    //var newUri = await DecryptAsync(query.Uri, makeClient).ConfigureAwait(false);
+                }
                 videoInfo.FormatsInfo.Add(new FormatInfo(query, item));
             }
         }
 
         return videoInfo;
+    }
+
+    private UnscrambledQuery Unscramble(string queryString)
+    {
+        queryString = queryString.Replace(@"\u0026", "&");
+        var query = new FormatInfoQuery(queryString);
+        string uri = query["url"];
+
+        query.TryGetValue("sp", out var signatureKey);
+        _signatureKey = signatureKey;
+
+        bool encrypted = false;
+        string signature;
+
+        if (query.TryGetValue("s", out signature))
+        {
+            encrypted = true;
+            uri += GetSignatureAndHost(GetSignatureKey(), signature, query);
+        }
+        else if (query.TryGetValue("sig", out signature))
+            uri += GetSignatureAndHost(GetSignatureKey(), signature, query);
+
+        uri = WebUtility.UrlDecode(
+            WebUtility.UrlDecode(uri));
+
+        var uriQuery = new FormatInfoQuery(uri);
+
+        if (!uriQuery.ContainsKey("ratebypass"))
+            uri += "&ratebypass=yes";
+
+        return new UnscrambledQuery(uri, encrypted);
+    }
+
+    private string GetSignatureAndHost(string key, string signature, FormatInfoQuery query)
+    {
+        string result = $"&{key}={signature}";
+
+        string host;
+
+        if (query.TryGetValue("fallback_host", out host))
+            result += "&fallback_host=" + host;
+
+        return result;
+    }
+
+    public string GetSignatureKey()
+    {
+        return string.IsNullOrWhiteSpace(_signatureKey) ? "signature" : _signatureKey;
     }
 
     public async Task<byte[]> GetBytes(FormatInfo video)

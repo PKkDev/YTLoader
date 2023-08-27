@@ -18,8 +18,10 @@ public class VideoInfo
 
     public string PlayerData { get; init; }
 
+    public string JsPlayer { get; init; }
+
     public VideoInfo(
-        string? title, int? second, string? author, string? videoId, List<string> keywords, string playerData)
+        string? title, int? second, string? author, string? videoId, List<string> keywords, string playerData, string jsPlayer)
     {
         Title = title ?? "none";
         LengthSeconds = second;
@@ -27,6 +29,8 @@ public class VideoInfo
         VideoId = videoId ?? "none";
         Keywords = keywords;
         PlayerData = playerData;
+
+        JsPlayer = jsPlayer;
 
         FormatsInfo = new();
     }

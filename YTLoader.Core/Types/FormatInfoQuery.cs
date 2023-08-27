@@ -74,4 +74,30 @@ public class FormatInfoQuery
             throw new KeyNotFoundException(key);
         }
     }
+
+    public bool TryGetValue(string key, out string value)
+    {
+        for (int i = 0; i < _count; i++)
+        {
+            var pair = pairs[i];
+            if (key == pair.Key)
+            {
+                value = pair.Value;
+                return true;
+            }
+        }
+
+        value = null;
+        return false;
+    }
+
+    public bool ContainsKey(string key)
+    {
+        for (int i = 0; i < _count; i++)
+        {
+            if (key == pairs[i].Key)
+                return true;
+        }
+        return false;
+    }
 }

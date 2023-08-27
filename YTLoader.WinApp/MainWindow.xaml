@@ -40,7 +40,7 @@
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding InfoFromResponse.QualityLabel}"/>
+                            <TextBlock Text="{Binding QualityLabel}"/>
                         </StackPanel>
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
@@ -48,12 +48,29 @@
 
         </StackPanel>
 
-        
+
 
         <StackPanel Orientation="Vertical">
 
+            <TextBlock Text="{x:Bind ViewModel.FormatInfoTxt, Mode=OneWay}"></TextBlock>
+
         </StackPanel>
 
+        <StackPanel Orientation="Horizontal">
+
+            <Button HorizontalAlignment="Left" VerticalAlignment="Center" Command="{x:Bind ViewModel.OnOpenCurrentFolderCmd}">
+                <FontIcon FontFamily="Segoe MDL2 Assets" Glyph="&#xE838;"/>
+            </Button>
+
+            <Button Command="{x:Bind ViewModel.OnDownloadVideo}">Download</Button>
+
+        </StackPanel>
+
+        <StackPanel Orientation="Vertical">
+
+            <TextBlock Text="{x:Bind ViewModel.DownloadMsg, Mode=OneWay}"></TextBlock>
+
+        </StackPanel>
 
     </StackPanel>
 

@@ -34,7 +34,9 @@
 
         <StackPanel Orientation="Vertical">
 
-            <ComboBox x:Name="Formats" Header="Format" PlaceholderText="Pick a Format" ItemsSource="{x:Bind ViewModel.AllFormats}"  SelectedItem="{x:Bind ViewModel.SelectedFormat, Mode=TwoWay}">
+            <ComboBox x:Name="Formats" Header="Format" PlaceholderText="Pick a Format" 
+                      ItemsSource="{x:Bind ViewModel.AllFormats}"  
+                      SelectedItem="{x:Bind ViewModel.SelectedFormat, Mode=TwoWay}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -43,6 +45,12 @@
                     </DataTemplate>
                 </ComboBox.ItemTemplate>
             </ComboBox>
+
+        </StackPanel>
+
+        <Button Command="{x:Bind ViewModel.OnAnalyzVideo}">Start</Button>
+
+        <StackPanel Orientation="Vertical">
 
         </StackPanel>
 

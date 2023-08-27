@@ -4,7 +4,6 @@ using YTLoader.Core;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
-using Windows.Globalization;
 
 namespace YTLoader.WinApp
 {

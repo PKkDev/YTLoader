@@ -9,6 +9,8 @@ public class FormatInfo
 {
     public readonly string VideoUrl;
 
+    public readonly bool IsEncrypted;
+
     //private readonly FormatInfoQuery _uriQuery;
 
     #region YouTubeVideoFormat
@@ -56,6 +58,7 @@ public class FormatInfo
         : this()
     {
         VideoUrl = query.Uri;
+        IsEncrypted = query.IsEncrypted;
 
         MapFormat(item);
 

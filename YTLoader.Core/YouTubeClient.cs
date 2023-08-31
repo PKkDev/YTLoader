@@ -14,7 +14,9 @@ public class YouTubeClient : IDisposable
 
     private HttpClient _client { get; set; }
 
-    private string _signatureKey { get; set; }
+    private string _signatureKey { get; set; } = "signature";
+
+    private VideoInfo _videoInfo { get; set; }
 
     public YouTubeClient()
     {
@@ -24,10 +26,10 @@ public class YouTubeClient : IDisposable
     public async Task<VideoInfo> GetVideo(string url)
     {
         var pageContent = await _client.GetStringAsync(url);
-        File.WriteAllText("D:/Projects/YTLoader/YTLoader.ConsoleApp/response.html", pageContent);
+        //File.WriteAllText("D:/Projects/YTLoader/YTLoader.ConsoleApp/response.html", pageContent);
 
         var playerData = ParsePlayerJson(pageContent);
-        File.WriteAllText("D:/Projects/YTLoader/YTLoader.ConsoleApp/InitialPlayerResponse.json", playerData);
+        //File.WriteAllText("D:/Projects/YTLoader/YTLoader.ConsoleApp/InitialPlayerResponse.json", playerData);
 
         string? jsPlayer = null;
 
@@ -131,13 +133,11 @@ public class YouTubeClient : IDisposable
             if (!string.IsNullOrEmpty(cipherValue))
             {
                 var query = Unscramble(cipherValue);
-                if (query.IsEncrypted)
-                {
-                    //var newUri = await DecryptAsync(query.Uri, makeClient).ConfigureAwait(false);
-                }
                 videoInfo.FormatsInfo.Add(new FormatInfo(query, item));
             }
         }
+
+        _videoInfo = videoInfo;
 
         return videoInfo;
     }
@@ -157,13 +157,17 @@ public class YouTubeClient : IDisposable
         if (query.TryGetValue("s", out signature))
         {
             encrypted = true;
-            uri += GetSignatureAndHost(GetSignatureKey(), signature, query);
+            uri += GetSignatureAndHost(_signatureKey, signature, query);
         }
-        else if (query.TryGetValue("sig", out signature))
-            uri += GetSignatureAndHost(GetSignatureKey(), signature, query);
+        else
+        {
+            if (query.TryGetValue("sig", out signature))
+            {
+                uri += GetSignatureAndHost(_signatureKey, signature, query);
+            }
+        }
 
-        uri = WebUtility.UrlDecode(
-            WebUtility.UrlDecode(uri));
+        uri = WebUtility.UrlDecode(WebUtility.UrlDecode(uri));
 
         var uriQuery = new FormatInfoQuery(uri);
 
@@ -185,16 +189,18 @@ public class YouTubeClient : IDisposable
         return result;
     }
 
-    public string GetSignatureKey()
-    {
-        return string.IsNullOrWhiteSpace(_signatureKey) ? "signature" : _signatureKey;
-    }
-
     public async Task<byte[]> GetBytes(FormatInfo video)
     {
+        var videoUrl = video.VideoUrl;
+
+        if (video.IsEncrypted)
+        {
+            videoUrl = await DecryptAsync(video.VideoUrl);
+        }
+
         MemoryStream stream = new();
 
-        using (var response = await _client.GetAsync(video.VideoUrl, HttpCompletionOption.ResponseHeadersRead))
+        using (var response = await _client.GetAsync(videoUrl, HttpCompletionOption.ResponseHeadersRead))
         {
             response.EnsureSuccessStatusCode();
 
@@ -236,7 +242,6 @@ public class YouTubeClient : IDisposable
         double? progressPercentage = null;
         if (totalDownloadSize.HasValue)
             progressPercentage = Math.Round((double)totalBytesRead / totalDownloadSize.Value * 100, 2);
-
 
         Console.WriteLine($"{progressPercentage}% ({totalBytesRead}/{totalDownloadSize})");
 
@@ -302,4 +307,49 @@ public class YouTubeClient : IDisposable
     {
         _client?.Dispose();
     }
+
+    #region DecryptAsync
+
+    private async Task<string> DecryptAsync(string url)
+    {
+        var jsPlayer = await _client.GetStringAsync(_videoInfo.JsPlayerUrl);
+
+        //File.WriteAllText("D:/Projects/YTLoader/YTLoader.ConsoleApp/jsplayer.js", jsPlayer);
+
+        var query = new FormatInfoQuery(url);
+
+        string signature;
+        if (!query.TryGetValue(_signatureKey, out signature))
+            return url;
+
+        if (string.IsNullOrWhiteSpace(signature))
+            throw new Exception("Signature not found.");
+
+        #region
+
+        var decipherFuncName = Regex.Match(jsPlayer, @"(\w+)=function\(\w+\){(\w+)=\2\.split\(\x22{2}\);.*?return\s+\2\.join\(\x22{2}\)}");
+        var functionLines = decipherFuncName.Success ? decipherFuncName.Groups[0].Value.Split(';') : null;
+
+        #endregion
+
+        var decipherDefinitionName = Regex.Match(string.Join(";", functionLines), "([\\$_\\w]+).\\w+\\(\\w+,\\d+\\);").Groups[1].Value;
+        if (string.IsNullOrEmpty(decipherDefinitionName))
+        {
+            throw new Exception("Could not find signature decipher definition name. Please report this issue to us.");
+        }
+
+        var decipherDefinitionBody = Regex.Match(jsPlayer, $@"var\s+{Regex.Escape(decipherDefinitionName)}=\{{(\w+:function\(\w+(,\w+)?\)\{{(.*?)\}}),?\}};", RegexOptions.Singleline).Groups[0].Value;
+        if (string.IsNullOrEmpty(decipherDefinitionBody))
+        {
+            throw new Exception("Could not find signature decipher definition body. Please report this issue to us.");
+        }
+
+
+        //query[_signatureKey] = DecryptSignature(jsPlayer, _signatureKey);
+
+
+        return string.Empty;
+    }
+
+    #endregion DecryptAsync
 }
